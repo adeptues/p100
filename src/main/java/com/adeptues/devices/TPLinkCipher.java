@@ -15,6 +15,7 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.Security;
+import java.util.Arrays;
 import java.util.Base64;
 
 public class TPLinkCipher {
@@ -24,7 +25,14 @@ public class TPLinkCipher {
     public TPLinkCipher(byte[] iv, byte[] key) {
         this.iv = iv;
         this.key = key;
-        Security.addProvider(new BouncyCastleProvider());
+        System.out.println(Arrays.toString(iv));
+        System.out.println(Arrays.toString(key));
+    }
+
+    private void log(){
+        /*for(int i = 0 ; i < iv.length;i++){
+            Byte.toString()
+        }*/
     }
 
     public String encrypt(String data) throws IOException, NoSuchPaddingException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
@@ -54,7 +62,7 @@ public class TPLinkCipher {
     }
 
     public static String mimeEncoder(byte [] toEncode){
-        Base64.Encoder encoder = Base64.getMimeEncoder(76,"\r\n".getBytes());
+        Base64.Encoder encoder = Base64.getMimeEncoder(64,"\r\n".getBytes());
         return encoder.encodeToString(toEncode);
     }
 }

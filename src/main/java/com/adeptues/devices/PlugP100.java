@@ -5,21 +5,33 @@ import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.*;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
+import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.encodings.PKCS1Encoding;
 import org.bouncycastle.crypto.engines.RSAEngine;
+import org.bouncycastle.crypto.params.AsymmetricKeyParameter;
+import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.jcajce.provider.asymmetric.RSA;
 import org.bouncycastle.jcajce.provider.asymmetric.rsa.CipherSpi;
+import org.bouncycastle.openssl.PEMParser;
+import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
+import org.bouncycastle.util.io.pem.PemObject;
+import org.bouncycastle.util.io.pem.PemReader;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-import java.io.IOException;
+import java.io.*;
 import java.security.*;
 
+import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.RSAPrivateKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Base64;
@@ -44,7 +56,7 @@ public class PlugP100 {
     public  static String REQUEST_MILLIS = "requestTimeMils";
     public  static String KEY = "key";
 
-    public PlugP100(String ipAddress, String email, String password) throws NoSuchAlgorithmException {
+    public PlugP100(String ipAddress, String email, String password) throws Exception {
         this.objectMapper = new ObjectMapper();
         this.ipAddress = ipAddress;
         this.email = email;
@@ -53,6 +65,8 @@ public class PlugP100 {
         KeyPair keyPair = this.createKeyPair();
         this.publicKey = TPLinkCipher.mimeEncoder(keyPair.getPublic().getEncoded());
         this.privateKey = TPLinkCipher.mimeEncoder(keyPair.getPrivate().getEncoded());
+
+
         this.client = new OkHttpClient();
         this.encryptCredentials(email,password);
 
@@ -64,10 +78,48 @@ public class PlugP100 {
 
     }
 
-    private KeyPair createKeyPair() throws NoSuchAlgorithmException {
+    public RSAPrivateKey readPrivateKeySecondApproach(File file) throws IOException {
+    try (FileReader keyReader = new FileReader(file)) {
+
+        PEMParser pemParser = new PEMParser(keyReader);
+        JcaPEMKeyConverter converter = new JcaPEMKeyConverter();
+        PrivateKeyInfo privateKeyInfo = PrivateKeyInfo.getInstance(pemParser.readObject());
+
+        return (RSAPrivateKey) converter.getPrivateKey(privateKeyInfo);
+    }
+}
+public RSAPrivateKey readPrivateKey(File file) throws Exception {
+    KeyFactory factory = KeyFactory.getInstance("RSA");
+
+    try (FileReader keyReader = new FileReader(file);
+      PemReader pemReader = new PemReader(keyReader)) {
+
+        PemObject pemObject = pemReader.readPemObject();
+        byte[] content = pemObject.getContent();
+        PKCS8EncodedKeySpec privKeySpec = new PKCS8EncodedKeySpec(content);
+        return (RSAPrivateKey) factory.generatePrivate(privKeySpec);
+    }
+}
+
+
+public RSAPublicKey readPublicKeySecondApproach(File file) throws IOException {
+    try (FileReader keyReader = new FileReader(file)) {
+        PEMParser pemParser = new PEMParser(keyReader);
+        JcaPEMKeyConverter converter = new JcaPEMKeyConverter();
+        SubjectPublicKeyInfo publicKeyInfo = SubjectPublicKeyInfo.getInstance(pemParser.readObject());
+        return (RSAPublicKey) converter.getPublicKey(publicKeyInfo);
+    }
+}
+
+    private KeyPair createKeyPair() throws Exception {
         KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
         keyPairGenerator.initialize(1024);
         KeyPair keyPair = keyPairGenerator.generateKeyPair();
+        /*File pubKey = new File("/home/tom/tom/p100/src/main/resources/publickey");
+        File privKey = new File("/home/tom/tom/p100/src/main/resources/privatekey");
+        RSAPublicKey rsaPublicKey = readPublicKeySecondApproach(pubKey);
+        RSAPrivateKey rsaPrivateKey = readPrivateKey(privKey);*/
+//https://stackoverflow.com/questions/33425446/creating-rsa-public-key-from-string/33426378#33426378
         return keyPair;
     }
 
@@ -95,7 +147,7 @@ public class PlugP100 {
 
     }
 
-    public void handshake() throws IOException, NoSuchPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException, InvalidKeySpecException {
+    public void handshake() throws IOException, NoSuchPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException, InvalidKeySpecException, NoSuchProviderException {
         String url = "http://"+ipAddress+"/app";
         Map<String, String> params = new HashMap<String, String>();
         System.out.println(this.publicKey);
@@ -132,25 +184,34 @@ public class PlugP100 {
         return cookieHeader.substring(0,45);
     }
 
-    private TPLinkCipher decodeHandshake(String handshakeKey) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
+    private TPLinkCipher decodeHandshake(String handshakeKey) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException, IOException, NoSuchProviderException {
         //base64decode
         //load PKCS1_v1_5 cipher with the private key
         //create a pkcs1 cipher with our private key to decode the key we got from the server
         //to extract the two peices we need for the tplink cipher
         byte[] keyBytes = Base64.getDecoder().decode(handshakeKey);
-        Cipher cipher = Cipher.getInstance("RSA");
+        Cipher cipher = Cipher.getInstance("RSA/None/PKCS1Padding","BC");
         KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+
+
         RSAEngine rsaEngine = new RSAEngine();
-        /*PKCS1Encoding pkcs1Encoding = new PKCS1Encoding(rsaEngine);
-        pkcs1Encoding.init(false, CipherParameters);*/
+        PKCS1Encoding pkcs1Encoding = new PKCS1Encoding(rsaEngine);
+
+
+//        pkcs1Encoding.init(false, CipherParameters);
+//        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(this.privateKey.getBytes());
+//        InputStreamReader inputStreamReader = new InputStreamReader(byteArrayInputStream);
+//        PemObject keyParameter = new PemReader(inputStreamReader).readPemObject();
+//        KeyParameter
+        X509EncodedKeySpec x509EncodedKeySpec = new X509EncodedKeySpec(Base64.getMimeDecoder().decode(this.privateKey));
         PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(Base64.getMimeDecoder().decode(this.privateKey));
         PrivateKey privateKey = keyFactory.generatePrivate(keySpec);
         cipher.init(Cipher.DECRYPT_MODE,privateKey);
 
         byte [] decrypted = cipher.doFinal(keyBytes);
         String kk = new String(decrypted);
-        byte [] iv = Arrays.copyOfRange(decrypted,0,16);//maybe off by one
-        byte [] key = Arrays.copyOfRange(decrypted,16,32);
+        byte [] iv = Arrays.copyOfRange(decrypted,16,32);//maybe off by one
+        byte [] key = Arrays.copyOfRange(decrypted,0,16);
         return new TPLinkCipher(iv,key);
     }
 
