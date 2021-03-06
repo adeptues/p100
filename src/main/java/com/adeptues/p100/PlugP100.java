@@ -23,7 +23,7 @@ import java.util.Map;
 public class PlugP100 {
 
     private String ipAddress;
-    private String encodedPasswordd;
+    private String encodedPassword;
     private String encodeEmail;
     private String privateKey;
     private String publicKey;
@@ -52,7 +52,7 @@ public class PlugP100 {
     }
 
     private void encryptCredentials(String email, String password){
-        this.encodedPasswordd = TPLinkCipher.mimeEncoder(password.getBytes());
+        this.encodedPassword = TPLinkCipher.mimeEncoder(password.getBytes());
         this.encodeEmail = TPLinkCipher.mimeEncoder(DigestUtils.sha1Hex(email).getBytes());
 
     }
@@ -67,7 +67,7 @@ public class PlugP100 {
         String url = "http://"+ipAddress+"/app";
         Map<String, Object> params = new HashMap<>();
         params.put("username",encodeEmail);
-        params.put("password",encodedPasswordd);
+        params.put("password", encodedPassword);
         RequestPayload requestPayload = new RequestPayload("login_device",params);
         String toBeEncrypted = objectMapper.writeValueAsString(requestPayload);
         String encr = this.tpLinkCipher.encrypt(toBeEncrypted);
