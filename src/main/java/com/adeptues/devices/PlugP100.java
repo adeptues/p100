@@ -34,8 +34,6 @@ import java.util.Map;
 public class PlugP100 {
 
     private String ipAddress;
-    private String email;
-    private String password;
     private String encodedPasswordd;
     private String encodeEmail;
     private String privateKey;
@@ -53,8 +51,6 @@ public class PlugP100 {
     public PlugP100(String ipAddress, String email, String password) throws Exception {
         this.objectMapper = new ObjectMapper();
         this.ipAddress = ipAddress;
-        this.email = email;
-        this.password = password;
         this.encryptCredentials(email,password);
         KeyPair keyPair = this.createKeyPair();
         this.publicKey = TPLinkCipher.mimeEncoder(keyPair.getPublic().getEncoded());
@@ -72,49 +68,10 @@ public class PlugP100 {
 
     }
 
-    public RSAPrivateKey readPrivateKeySecondApproach(File file) throws IOException {
-    try (FileReader keyReader = new FileReader(file)) {
-
-        PEMParser pemParser = new PEMParser(keyReader);
-        JcaPEMKeyConverter converter = new JcaPEMKeyConverter();
-        PrivateKeyInfo privateKeyInfo = PrivateKeyInfo.getInstance(pemParser.readObject());
-
-        return (RSAPrivateKey) converter.getPrivateKey(privateKeyInfo);
-    }
-}
-public RSAPrivateKey readPrivateKey(File file) throws Exception {
-    KeyFactory factory = KeyFactory.getInstance("RSA");
-
-    try (FileReader keyReader = new FileReader(file);
-      PemReader pemReader = new PemReader(keyReader)) {
-
-        PemObject pemObject = pemReader.readPemObject();
-        byte[] content = pemObject.getContent();
-        PKCS8EncodedKeySpec privKeySpec = new PKCS8EncodedKeySpec(content);
-        return (RSAPrivateKey) factory.generatePrivate(privKeySpec);
-    }
-}
-
-
-public RSAPublicKey readPublicKeySecondApproach(File file) throws IOException {
-    try (FileReader keyReader = new FileReader(file)) {
-        PEMParser pemParser = new PEMParser(keyReader);
-        JcaPEMKeyConverter converter = new JcaPEMKeyConverter();
-        SubjectPublicKeyInfo publicKeyInfo = SubjectPublicKeyInfo.getInstance(pemParser.readObject());
-        return (RSAPublicKey) converter.getPublicKey(publicKeyInfo);
-    }
-}
-
     private KeyPair createKeyPair() throws Exception {
         KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
         keyPairGenerator.initialize(1024);
-        KeyPair keyPair = keyPairGenerator.generateKeyPair();
-        /*File pubKey = new File("/home/tom/tom/p100/src/main/resources/publickey");
-        File privKey = new File("/home/tom/tom/p100/src/main/resources/privatekey");
-        RSAPublicKey rsaPublicKey = readPublicKeySecondApproach(pubKey);
-        RSAPrivateKey rsaPrivateKey = readPrivateKey(privKey);*/
-//https://stackoverflow.com/questions/33425446/creating-rsa-public-key-from-string/33426378#33426378
-        return keyPair;
+        return keyPairGenerator.generateKeyPair();
     }
 
     public void login() throws IOException, NoSuchPaddingException, InvalidKeyException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, InvalidAlgorithmParameterException {
@@ -129,17 +86,9 @@ public RSAPublicKey readPublicKeySecondApproach(File file) throws IOException {
         SecurePassThroughPayload securePassThroughPayload = new SecurePassThroughPayload(encr);
         String json = objectMapper.writeValueAsString(securePassThroughPayload);
         String response = doPost(url,json);
-        System.out.println("response");
-        System.out.println(response);
         String field = getFieldFromResponse(response,"response");
         String decrypted = tpLinkCipher.decrypt(field);
-        String token = getFieldFromResponse(decrypted,"token");
-        this.token = token;
-        //encrypt json
-        //create securepathtrough
-        //make request
-        //decrypt response
-
+        this.token = getFieldFromResponse(decrypted,"token");
     }
 
     public DeviceInfo getDeviceInfo() throws IOException, NoSuchPaddingException, InvalidKeyException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, InvalidAlgorithmParameterException {
@@ -184,7 +133,6 @@ public RSAPublicKey readPublicKeySecondApproach(File file) throws IOException {
     public void handshake() throws IOException, NoSuchPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException, InvalidKeySpecException, NoSuchProviderException {
         String url = "http://"+ipAddress+"/app";
         Map<String, Object> params = new HashMap<>();
-        System.out.println(this.publicKey);
         params.put(KEY,pem(this.publicKey));
         long millis = Instant.now().toEpochMilli();
         params.put(REQUEST_MILLIS, Long.toString(millis));
@@ -203,7 +151,6 @@ public RSAPublicKey readPublicKeySecondApproach(File file) throws IOException {
             String key = getFieldFromResponse(responseJson,"key");
             this.tpLinkCipher = decodeHandshake(key);
             cookie = getCookie(response.header("Set-Cookie"));
-            System.out.println("Cookied "+cookie);
         }
 
 
@@ -227,23 +174,11 @@ public RSAPublicKey readPublicKeySecondApproach(File file) throws IOException {
         Cipher cipher = Cipher.getInstance("RSA/None/PKCS1Padding","BC");
         KeyFactory keyFactory = KeyFactory.getInstance("RSA");
 
-
-        RSAEngine rsaEngine = new RSAEngine();
-        PKCS1Encoding pkcs1Encoding = new PKCS1Encoding(rsaEngine);
-
-
-//        pkcs1Encoding.init(false, CipherParameters);
-//        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(this.privateKey.getBytes());
-//        InputStreamReader inputStreamReader = new InputStreamReader(byteArrayInputStream);
-//        PemObject keyParameter = new PemReader(inputStreamReader).readPemObject();
-//        KeyParameter
-        X509EncodedKeySpec x509EncodedKeySpec = new X509EncodedKeySpec(Base64.getMimeDecoder().decode(this.privateKey));
         PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(Base64.getMimeDecoder().decode(this.privateKey));
         PrivateKey privateKey = keyFactory.generatePrivate(keySpec);
         cipher.init(Cipher.DECRYPT_MODE,privateKey);
 
         byte [] decrypted = cipher.doFinal(keyBytes);
-        String kk = new String(decrypted);
         byte [] iv = Arrays.copyOfRange(decrypted,16,32);//maybe off by one
         byte [] key = Arrays.copyOfRange(decrypted,0,16);
         return new TPLinkCipher(iv,key);

@@ -25,28 +25,15 @@ public class TPLinkCipher {
     public TPLinkCipher(byte[] iv, byte[] key) {
         this.iv = iv;
         this.key = key;
-        System.out.println(Arrays.toString(iv));
-        System.out.println(Arrays.toString(key));
-    }
-
-    private void log(){
-        /*for(int i = 0 ; i < iv.length;i++){
-            Byte.toString()
-        }*/
     }
 
     public String encrypt(String data) throws IOException, NoSuchPaddingException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
-        //ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-
-        //PKCS7 pkcs7 = new PKCS7(data.getBytes());//we need to pad the data to pkcs7 padding
         //original python code uses pkcs7 padding. this is not available in java but pkcs5 functionally identical for AES
         Cipher cipher = Cipher.getInstance("AES/CBC/PKCS7Padding");
         SecretKeySpec secretKeySpec = new SecretKeySpec(key,"AES");
-        //KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
         IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
 
         cipher.init(Cipher.ENCRYPT_MODE,secretKeySpec,ivParameterSpec);//cbc_mode in python
-        //pkcs7.encodeSignedData(byteArrayOutputStream);//TODO not sure if this pks7ecoding is right or even needed
         byte [] out = cipher.doFinal(data.getBytes());
         return Base64.getEncoder().encodeToString(out);//in python this ised the mimencoder bust stripped the newlines
     }
