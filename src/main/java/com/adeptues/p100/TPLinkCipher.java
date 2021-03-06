@@ -1,4 +1,4 @@
-package com.adeptues.devices;
+package com.adeptues.p100;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider;

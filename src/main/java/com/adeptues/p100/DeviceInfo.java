@@ -1,4 +1,4 @@
-package com.adeptues.devices;
+package com.adeptues.p100;
 
 public class DeviceInfo {
     private String device_id;

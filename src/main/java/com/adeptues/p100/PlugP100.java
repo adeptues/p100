@@ -1,17 +1,9 @@
-package com.adeptues.devices;
+package com.adeptues.p100;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.*;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
-import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
-import org.bouncycastle.crypto.encodings.PKCS1Encoding;
-import org.bouncycastle.crypto.engines.RSAEngine;
-import org.bouncycastle.openssl.PEMParser;
-import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
-import org.bouncycastle.util.io.pem.PemObject;
-import org.bouncycastle.util.io.pem.PemReader;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -20,11 +12,8 @@ import javax.crypto.NoSuchPaddingException;
 import java.io.*;
 import java.security.*;
 
-import java.security.interfaces.RSAPrivateKey;
-import java.security.interfaces.RSAPublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
-import java.security.spec.X509EncodedKeySpec;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Base64;
@@ -152,12 +141,6 @@ public class PlugP100 {
             this.tpLinkCipher = decodeHandshake(key);
             cookie = getCookie(response.header("Set-Cookie"));
         }
-
-
-
-        //get cookie
-
-
     }
 
     private String getCookie(String cookieHeader){

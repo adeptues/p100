@@ -1,4 +1,4 @@
-package com.adeptues.devices;
+package com.adeptues.p100;
 
 import java.util.Map;
 

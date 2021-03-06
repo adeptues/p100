@@ -1,5 +1,7 @@
 package com.adeptues.devices;
 
+import com.adeptues.p100.PlugP100;
+import com.adeptues.p100.TPLinkCipher;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.Test;
 
@@ -9,9 +11,6 @@ import javax.crypto.NoSuchPaddingException;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.security.*;
-import java.security.spec.InvalidKeySpecException;
-
-import static org.junit.Assert.*;
 
 public class PlugP100Test {
 
