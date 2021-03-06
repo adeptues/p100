@@ -7,7 +7,7 @@ public class RequestPayload extends HandshakePayload {
     private long requestTimeMils;
 
 
-    public RequestPayload(String method, Map<String, String> params) {
+    public RequestPayload(String method, Map<String, Object> params) {
         super(method, params);
         this.requestTimeMils = Instant.now().toEpochMilli();
     }

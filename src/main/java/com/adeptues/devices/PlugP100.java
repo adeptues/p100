@@ -1,19 +1,13 @@
 package com.adeptues.devices;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.*;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
-import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.encodings.PKCS1Encoding;
 import org.bouncycastle.crypto.engines.RSAEngine;
-import org.bouncycastle.crypto.params.AsymmetricKeyParameter;
-import org.bouncycastle.crypto.params.KeyParameter;
-import org.bouncycastle.jcajce.provider.asymmetric.RSA;
-import org.bouncycastle.jcajce.provider.asymmetric.rsa.CipherSpi;
 import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.bouncycastle.util.io.pem.PemObject;
@@ -30,7 +24,6 @@ import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
-import java.security.spec.RSAPrivateKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.time.Instant;
 import java.util.Arrays;
@@ -51,6 +44,7 @@ public class PlugP100 {
     private OkHttpClient client;
     private TPLinkCipher tpLinkCipher;
     private String cookie;
+    private String token;
     public static final MediaType JSON
     = MediaType.get("application/json; charset=utf-8");
     public  static String REQUEST_MILLIS = "requestTimeMils";
@@ -125,7 +119,7 @@ public RSAPublicKey readPublicKeySecondApproach(File file) throws IOException {
 
     public void login() throws IOException, NoSuchPaddingException, InvalidKeyException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, InvalidAlgorithmParameterException {
         String url = "http://"+ipAddress+"/app";
-        Map<String,String> params = new HashMap<>();
+        Map<String, Object> params = new HashMap<>();
         params.put("username",encodeEmail);
         params.put("password",encodedPasswordd);
         RequestPayload requestPayload = new RequestPayload("login_device",params);
@@ -139,7 +133,8 @@ public RSAPublicKey readPublicKeySecondApproach(File file) throws IOException {
         System.out.println(response);
         String field = getFieldFromResponse(response,"response");
         String decrypted = tpLinkCipher.decrypt(field);
-        System.out.println(decrypted);
+        String token = getFieldFromResponse(decrypted,"token");
+        this.token = token;
         //encrypt json
         //create securepathtrough
         //make request
@@ -147,9 +142,48 @@ public RSAPublicKey readPublicKeySecondApproach(File file) throws IOException {
 
     }
 
+    public DeviceInfo getDeviceInfo() throws IOException, NoSuchPaddingException, InvalidKeyException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, InvalidAlgorithmParameterException {
+        String url = "http://"+ipAddress+"/app?token="+token;
+
+        RequestPayload requestPayload = new RequestPayload("get_device_info",null);
+        String encryptedPayload = this.tpLinkCipher.encrypt(objectMapper.writeValueAsString(requestPayload));
+        SecurePassThroughPayload securePassThroughPayload = new SecurePassThroughPayload(encryptedPayload);
+        String responseJson = doPost(url,objectMapper.writeValueAsString(securePassThroughPayload));
+        String decyrpted = this.tpLinkCipher.decrypt(getFieldFromResponse(responseJson,"response"));
+        String deviceString = getFieldFromResponse(decyrpted,"result");
+        return objectMapper.readValue(deviceString,DeviceInfo.class);
+    }
+
+    public boolean turnOn() throws IOException, NoSuchPaddingException, InvalidKeyException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, InvalidAlgorithmParameterException {
+        return switchOnOff(true);
+    }
+
+    private boolean switchOnOff(boolean on) throws IOException, NoSuchPaddingException, InvalidKeyException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException {
+        String url = "http://"+ipAddress+"/app?token="+token;
+        Map<String, Object> params = new HashMap<>();
+        params.put("device_on",on);
+        RequestPayload requestPayload = new RequestPayload("set_device_info",params);
+
+        String encyrptedPayload = this.tpLinkCipher.encrypt(objectMapper.writeValueAsString(requestPayload));
+        SecurePassThroughPayload securePassThroughPayload = new SecurePassThroughPayload(encyrptedPayload);
+
+        String responseJson = doPost(url,objectMapper.writeValueAsString(securePassThroughPayload));
+
+        String decryptedPayload = this.tpLinkCipher.decrypt(getFieldFromResponse(responseJson,"response"));
+        Result result = objectMapper.readValue(decryptedPayload,Result.class);
+        if(result.getError_code() != 0){
+            //maybe throw exceptions instead
+            return false;
+        }
+        return true;
+    }
+    public boolean turnOff() throws NoSuchPaddingException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, IOException, BadPaddingException, IllegalBlockSizeException, InvalidKeyException {
+        return switchOnOff(false);
+    }
+
     public void handshake() throws IOException, NoSuchPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException, InvalidKeySpecException, NoSuchProviderException {
         String url = "http://"+ipAddress+"/app";
-        Map<String, String> params = new HashMap<String, String>();
+        Map<String, Object> params = new HashMap<>();
         System.out.println(this.publicKey);
         params.put(KEY,pem(this.publicKey));
         long millis = Instant.now().toEpochMilli();

@@ -19,9 +19,14 @@ public class PlugP100Test {
     public void handshake() throws Exception {
         System.out.println(Charset.defaultCharset());
         Security.addProvider(new BouncyCastleProvider());
-        PlugP100 plugP100 = new PlugP100("192.168.1.4","adeptues@googlemail.com","Pissoff1");
+        PlugP100 plugP100 = new PlugP100("192.168.1.6","adeptues@googlemail.com","Pissoff1");
         plugP100.handshake();
         plugP100.login();//login does not work somthing wrong with length on returned message unable to decrypt
+        plugP100.turnOn();
+        Thread.sleep(5000);
+        plugP100.turnOff();
+        String info  = plugP100.getDeviceInfo();
+        System.out.println(info);
     }
 
     @Test

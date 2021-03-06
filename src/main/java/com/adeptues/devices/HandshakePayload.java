@@ -4,9 +4,9 @@ import java.util.Map;
 
 public class HandshakePayload {
      private String method;
-    private Map<String, String> params;
+    private Map<String, Object> params;
 
-    public HandshakePayload(String method, Map<String, String> params) {
+    public HandshakePayload(String method, Map<String, Object> params) {
         this.method = method;
         this.params = params;
     }
@@ -19,11 +19,11 @@ public class HandshakePayload {
         this.method = method;
     }
 
-    public Map<String, String> getParams() {
+    public Map<String, Object> getParams() {
         return params;
     }
 
-    public void setParams(Map<String, String> params) {
+    public void setParams(Map<String, Object> params) {
         this.params = params;
     }
 }
