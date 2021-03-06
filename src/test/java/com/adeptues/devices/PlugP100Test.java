@@ -1,5 +1,6 @@
 package com.adeptues.devices;
 
+import com.adeptues.p100.DeviceInfo;
 import com.adeptues.p100.PlugP100;
 import com.adeptues.p100.TPLinkCipher;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -24,7 +25,7 @@ public class PlugP100Test {
         plugP100.turnOn();
         Thread.sleep(5000);
         plugP100.turnOff();
-        String info  = plugP100.getDeviceInfo();
+        DeviceInfo info  = plugP100.getDeviceInfo();
         System.out.println(info);
     }
 
