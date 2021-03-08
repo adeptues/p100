@@ -73,7 +73,7 @@ i think this tells the plug to do a wireless scan so the app can ask the user fo
   ```json
   {
     "account": {
-      "password": "UGlzc29mZjE=",
+      "password": "cG9vZmFjZQo=",
       "username": "YWRlcHR1ZXNAZ29vZ2xlbWFpbC5jb20="
     },
     "time": {
@@ -85,7 +85,7 @@ i think this tells the plug to do a wireless scan so the app can ask the user fo
     },
     "wireless": {
       "key_type": "wpa2_psk",
-      "password": "c3Ryb25nb3dsMzgy",
+      "password": "cG9vZmFjZQo=",
       "ssid": "TkVUR0VBUjkw"
     }
   }
