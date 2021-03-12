@@ -6,7 +6,7 @@
 
     <groupId>com.adeptues</groupId>
     <artifactId>p100</artifactId>
-    <version>0.0.2-RELEASE</version>
+    <version>0.0.3-SNAPSHOT</version>
     <name>Tapo P100 IOT plug implementation</name>
     <description>
         This is an implementation for the TPLink Tapo P100 wifi enabled smart plug
