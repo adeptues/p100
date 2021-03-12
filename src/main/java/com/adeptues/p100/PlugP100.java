@@ -88,8 +88,8 @@ public class PlugP100 {
         SecurePassThroughPayload securePassThroughPayload = new SecurePassThroughPayload(encryptedPayload);
         String responseJson = doPost(url,objectMapper.writeValueAsString(securePassThroughPayload));
         String decyrpted = this.tpLinkCipher.decrypt(getFieldFromResponse(responseJson,"response"));
-        String deviceString = getFieldFromResponse(decyrpted,"result");
-        return objectMapper.readValue(deviceString,DeviceInfo.class);
+        //String deviceString = getFieldFromResponse(decyrpted,"result");
+        return getDeviceInfo(decyrpted);
     }
 
     public boolean turnOn() throws IOException, NoSuchPaddingException, InvalidKeyException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, InvalidAlgorithmParameterException {
@@ -154,7 +154,8 @@ public class PlugP100 {
         //create a pkcs1 cipher with our private key to decode the key we got from the server
         //to extract the two peices we need for the tplink cipher
         byte[] keyBytes = Base64.getDecoder().decode(handshakeKey);
-        Cipher cipher = Cipher.getInstance("RSA/None/PKCS1Padding","BC");
+        //Cipher cipher = Cipher.getInstance("RSA/None/PKCS1Padding","BC");
+        Cipher cipher = Cipher.getInstance("RSA");
         KeyFactory keyFactory = KeyFactory.getInstance("RSA");
 
         PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(Base64.getMimeDecoder().decode(this.privateKey));
@@ -170,6 +171,12 @@ public class PlugP100 {
     private String getFieldFromResponse(String json,String field) throws JsonProcessingException {
         ResponsePayload responsePayload = objectMapper.readValue(json,ResponsePayload.class);
         return responsePayload.getResult().get(field);
+    }
+    private DeviceInfo getDeviceInfo(String json) throws JsonProcessingException {
+        ResponsePayload responsePayload = objectMapper.readValue(json,ResponsePayload.class);
+        Map<String, String> params = responsePayload.getResult();
+        String tmp = objectMapper.writeValueAsString(params);
+        return objectMapper.readValue(tmp,DeviceInfo.class);
     }
 
     private String pem(String key){

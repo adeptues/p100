@@ -3,7 +3,6 @@ package com.adeptues.devices;
 import com.adeptues.p100.DeviceInfo;
 import com.adeptues.p100.PlugP100;
 import com.adeptues.p100.TPLinkCipher;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.Test;
 
 import javax.crypto.BadPaddingException;
@@ -18,13 +17,13 @@ public class PlugP100Test {
     @Test
     public void handshake() throws Exception {
         System.out.println(Charset.defaultCharset());
-        Security.addProvider(new BouncyCastleProvider());
-        PlugP100 plugP100 = new PlugP100("192.168.1.6","adeptues@googlemail.com","Pissoff1");
+        //Security.addProvider(new BouncyCastleProvider());
+        PlugP100 plugP100 = new PlugP100("192.168.1.4","adeptues@googlemail.com","Pissoff1");
         plugP100.handshake();
         plugP100.login();//login does not work somthing wrong with length on returned message unable to decrypt
-        plugP100.turnOn();
+        /*plugP100.turnOn();
         Thread.sleep(5000);
-        plugP100.turnOff();
+        plugP100.turnOff();*/
         DeviceInfo info  = plugP100.getDeviceInfo();
         System.out.println(info);
     }
@@ -37,7 +36,7 @@ public class PlugP100Test {
         // 0xc5,0xd8,0x4f,0x6a,0xa1,0xdb,0xc1,0x59,0xa2,0x69,0xc2,0x5e,0x90,0x68,0x45,0x5f
         //python data to encrypt {"method": "login_device", "params": {"username": "MmZiZTQ4ZjU4MTA1MTA2YTAxMDgwZjcxYmE5NjFiZmI5MGVlNjUxMw==", "password": "UGlzc29mZjE="}, "requestTimeMils": 1615030507603}
         //python encrypted out lYUs74j4/qaFWkr9KAfOD8qWiD0Dj6e/fVwDRGOX9nhTetE6oStHe8aQfMFrjwZYGBPUFajO8A3SAfnEHhN2sKPdYuQGmc4IvPYxGsAdONvIhwgK8NwpjmBLcaTNK0c4kJPIeI69ImMQN1IA88D3p1BmZOhW835FoJBAmpV/ChGx205Z/kFGq+pw3cPqeHVG1lgEMcymLsuC96q4oq81mIl7gzjqimBmwHQKsaSfgZI=
-        Security.addProvider(new BouncyCastleProvider());
+
         /*byte [] iv = new byte[] {16, 115, -59, -68, 22, 102, -52, -69, 3, 101, 75, -65, -128, -17, -49, -68};
         byte [] key = new byte[] {-118, 46, -52, -66, 75, 43, 78, -65, -50, -53, 79, -66, -82, -119, -50, -66};*/
 

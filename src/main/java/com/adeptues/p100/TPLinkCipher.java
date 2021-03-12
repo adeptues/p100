@@ -1,7 +1,6 @@
 package com.adeptues.p100;
 
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider;
+
 import sun.security.pkcs.PKCS7;
 import sun.security.pkcs.ParsingException;
 
@@ -29,7 +28,7 @@ public class TPLinkCipher {
 
     public String encrypt(String data) throws IOException, NoSuchPaddingException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
         //original python code uses pkcs7 padding. this is not available in java but pkcs5 functionally identical for AES
-        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS7Padding");
+        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
         SecretKeySpec secretKeySpec = new SecretKeySpec(key,"AES");
         IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
 
@@ -39,7 +38,7 @@ public class TPLinkCipher {
     }
 
     public String decrypt(String data) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
-        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS7Padding");
+        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
         SecretKeySpec secretKeySpec = new SecretKeySpec(key,"AES");
         IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
         //TODO still a problem with padding decryption

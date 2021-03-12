@@ -235,4 +235,36 @@ public class DeviceInfo {
     public void setLang(String lang) {
         this.lang = lang;
     }
+
+    @Override
+    public String toString() {
+        return "DeviceInfo{" +
+                "device_id='" + device_id + '\'' +
+                ", fw_ver='" + fw_ver + '\'' +
+                ", hw_ver='" + hw_ver + '\'' +
+                ", type='" + type + '\'' +
+                ", model='" + model + '\'' +
+                ", mac='" + mac + '\'' +
+                ", hw_id='" + hw_id + '\'' +
+                ", fw_id='" + fw_id + '\'' +
+                ", oem_id='" + oem_id + '\'' +
+                ", specs='" + specs + '\'' +
+                ", device_on=" + device_on +
+                ", on_time=" + on_time +
+                ", overheated=" + overheated +
+                ", nickname='" + nickname + '\'' +
+                ", location='" + location + '\'' +
+                ", avatar='" + avatar + '\'' +
+                ", longitude=" + longitude +
+                ", latitude=" + latitude +
+                ", has_set_location_info=" + has_set_location_info +
+                ", ip='" + ip + '\'' +
+                ", ssid='" + ssid + '\'' +
+                ", signal_level=" + signal_level +
+                ", rssi=" + rssi +
+                ", region='" + region + '\'' +
+                ", time_diff=" + time_diff +
+                ", lang='" + lang + '\'' +
+                '}';
+    }
 }
