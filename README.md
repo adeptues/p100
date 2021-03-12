@@ -11,7 +11,6 @@ Usage
 ```java
 public class Main {
     public static void main(String[] args) {
-        Security.addProvider(new BouncyCastleProvider());
         PlugP100 plugP100 = new PlugP100("192.168.x.x", "example@googlemail.com", "Password1");
         plugP100.handshake();
         plugP100.login();
@@ -23,5 +22,3 @@ public class Main {
 }
 
 ```
-This does depend on the BouncyCastle Crypto extensions which need to be added
-to the security if not already done so before using the class
