@@ -7,7 +7,32 @@
     <groupId>com.adeptues</groupId>
     <artifactId>p100</artifactId>
     <version>0.0.1-RELEASE</version>
+    <name>Tapo P100 IOT plug implementation</name>
+    <description>
+        This is an implementation for the TPLink Tapo P100 wifi enabled smart plug
+    </description>
 
+    <url>https://github.com/adeptues/p100</url>
+
+     <developers>
+        <developer>
+            <name>Thomas Helmkay</name>
+            <email>adeptues@googlemail.com</email>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:git://github.com/adeptues/p100.git</connection>
+        <developerConnection>scm:git:ssh://github.com/adeptues/p100.git</developerConnection>
+        <url>https://github.com/adeptues/p100/tree/master</url>
+    </scm>
+
+     <licenses>
+        <license>
+            <name>GNU General Public License v3 (GPL-3)</name>
+            <url>https://www.gnu.org/licenses/gpl-3.0.en.html</url>
+        </license>
+    </licenses>
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
@@ -48,7 +73,6 @@
 
     </dependencies>
     <build>
-        <finalName>p100</finalName>
         <plugins>
             <plugin>
                 <groupId>org.sonatype.plugins</groupId>
@@ -57,7 +81,7 @@
                 <extensions>true</extensions>
                 <configuration>
                     <serverId>ossrh</serverId>
-                    <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                    <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
                     <autoReleaseAfterClose>true</autoReleaseAfterClose>
                 </configuration>
             </plugin>
